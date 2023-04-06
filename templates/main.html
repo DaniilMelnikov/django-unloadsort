@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static "main.css" %}">
+    <title>Главная</title>
+</head>
+<body>
+    <div class="username">
+        {% if user.first_name %}
+            Привет, {{ user.first_name }}
+        {% else %}
+            Привет, {{ user.username }}
+        {% endif %}
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Домен</th>
+                <th>Лимиты</th>
+                <th>Удалить</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for domain in page.domains %}
+                <tr>
+                    <td>{{ domain.name }}</td>
+                    <td>{{ domain.limit }}</td>
+                    <td><a href="?domain={{ domain.name }}"><button class="delete-button">Удалить</button></a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if page.prev %}
+        <a href="?page={{ page.num_prev }}"><<</a>
+    {% endif %}
+    {% if page.prev or page.next %}
+        Страница {{ page.page_number }}
+    {% endif %}
+    {% if page.next %}
+        <a href="?page={{ page.num_next }}">>></a>
+    {% endif %}
+
+    <div class="container">
+        Добавьте домен в список и внесите лимиты:
+        <form class="form-horizontal" action="/add-domain/" method="post">
+            {% csrf_token %}
+            {{ form }}
+            <input class="input-button" type="submit" value="Submit">
+        </form>
+        {{ request.session.success }}
+        {{ domain_delete }}
+    </div>
+
+    <div class="container">
+        Загрузите CSV файлы из Keys.so:
+        <form action="/upload-data/" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form_upload }}
+            <input class="input-button" type="submit" value="Submit">
+        </form>
+    </div>
+
+    <div class="container">
+        Внесите Почту и Ключ от доступа к XMLproxy.ru:
+        <form action="/add-xml-proxy/" method="post">
+            {% csrf_token %}
+            {{ form_xml }}
+            <input class="input-button" type="submit" value="Submit">
+        </form>
+        {{ request.session.key_success }}
+    </div>
+
+    <div class="container">
+        Запустите обработку загруженных данных:
+        <form action="/sort-unload/" method="post">
+            {% csrf_token %}
+            <input type="text" name="domains" value="{% for domain in page.domains %}{{ domain.name }};{% endfor %}" style="display: none;">
+            <input class="input-button" type="submit" value="Запустить сбор данных в файл">
+        </form>
+        {{ request.session.error_xmlproxy }}
+        {{ request.session.success_result }}
+    </div>
+
+    {% if request.session.file %}
+        <div class="ccd"><a href="{{ request.session.file }}" class="ddott" download="result_admin.csv">Download</a></div>
+    {% endif %}
+    <div class="logout"><a href="{% url 'logout' %}"><button class="delete-button">Выйти из системы</button></a></div>
+</body>
+</html>

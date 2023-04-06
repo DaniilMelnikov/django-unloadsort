@@ -1,0 +1,143 @@
+body {
+    background-color: #f0efef;
+}
+
+.username {
+    font-size: 48px;
+}
+
+.table {
+	width: 100%;
+	border: none;
+	margin-bottom: 20px;
+}
+.table thead th {
+	font-weight: bold;
+	text-align: left;
+	border: none;
+	padding: 10px 15px;
+	background: #d8d8d8;
+	font-size: 24px;
+	border-left: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+}
+.table tbody td {
+	text-align: left;
+	border-left: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	padding: 10px 15px;
+	font-size: 18px;
+	vertical-align: top;
+}
+.table thead tr th:first-child, .table tbody tr td:first-child {
+	border-left: none;
+}
+.table thead tr th:last-child, .table tbody tr td:last-child {
+	border-right: none;
+}
+.table tbody tr:nth-child(even){
+	background: #969696;
+}
+  
+.container{
+    padding-top:20px;
+    margin: auto;
+}
+
+
+.ccd {
+    height: 95px;
+    overflow: hidden;
+    width: 60%;
+    margin:0 auto;
+    position: relative;
+}
+
+a.ddott {
+    margin:0 auto;
+    display: block;
+    line-height: 50px;
+    height: 50px;
+    width: 24%;
+    overflow: hidden;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    text-shadow: 0 100px 0 #FFF,1px 76px 10px #000;
+    color: #FFF;
+    background: #62ad67;
+    border-right: 2px solid #FFF;
+    border-left: 2px solid #FFF;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    -ms-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+
+}
+a.ddott:hover {
+    text-shadow: 0 50px 0 #FFF, 1px 51px 20px #FFF;
+    margin-top: -50px;
+    height: 100px;
+    background: #222;
+}
+
+.delete-button {
+    display: inline-block;
+    color: white;
+    text-decoration: none;
+    padding: .5em 2em;
+    outline: none;
+    border-width: 2px 0;
+    border-style: solid none;
+    border-color: #ff4e33 #000 #D77206;
+    border-radius: 6px;
+    background: linear-gradient(#ff4e33, #E38916) #E38916;
+    transition: 0.2s;
+  } 
+  .delete-button:hover { background: linear-gradient(#ff4e33, #f59500) #f5ae00; }
+  .delete-button:active { background: linear-gradient(#ff4e33, #f5ae00) #f59500; }
+
+
+  .input-button {
+    display: inline-block;
+    color: white;
+    text-decoration: none;
+    padding: .5em 2em;
+    outline: none;
+    border-width: 2px 0;
+    border-style: solid none;
+    border-color: #51c268 #000 #9f8e7c;
+    border-radius: 6px;
+    background: linear-gradient(#51c268, #498054) #51c268;
+    transition: 0.2s;
+  } 
+  .input-button:hover { background: linear-gradient(#51c268, #51c268) #51c268; }
+  .input-button:active { background: linear-gradient(#51c268, #51c268) #51c268; }
+
+
+  .file-field {
+    display: inline-block;
+    color: white;
+    text-decoration: none;
+    padding: .5em 2em;
+    outline: none;
+    border-width: 2px 0;
+    border-style: solid none;
+    border-color: #51c268 #000 #9f8e7c;
+    border-radius: 6px;
+    background: linear-gradient(#51c268, #498054) #51c268;
+    transition: 0.2s;
+  } 
+  .file-field:hover { background: linear-gradient(#51c268, #51c268) #51c268; }
+  .file-fields:active { background: linear-gradient(#51c268, #51c268) #51c268; }
+
+
+.form-field {
+    height: 22px;
+}
+
+
+.logout {
+    margin-top: 45px;
+}

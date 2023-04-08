@@ -62,6 +62,9 @@
             {{ form_upload }}
             <input class="input-button" type="submit" value="Submit">
         </form>
+        {% for domain in request.session.domain_list%}
+            <div>Запишите {{ domain }} в список с лимитами</div>
+        {% endfor %}
     </div>
 
     <div class="container">

@@ -60,19 +60,25 @@ def main(request):
 
             request.session['success_result']
             request.session['success_result_count']
+            
             request.session['file']
             request.session['file_count']
+            
+            request.session['domain_list']
+            request.session['domain_exist_count']
         except KeyError:
             request.session['success_count'] = 0
             request.session['success_xml_count'] = 0
             request.session['error_xmlproxy_count'] = 0
             request.session['success_result_count'] = 0
+            request.session['file_count'] = -5
+            request.session['domain_exist_count'] = 0
             request.session['success'] = ''
             request.session['key_success'] = ''
             request.session['error_xmlproxy'] = ''
             request.session['success_result'] = ''
             request.session['file'] = ''
-            request.session['file_count'] = -5
+            request.session['domain_list'] = ''
         
 
         request.session['success'], request.session['success_count'] = current_session(
@@ -89,6 +95,9 @@ def main(request):
             )
         request.session['file'], request.session['file_count'] = current_session(
             request.session['file'], request.session['file_count']
+            )
+        request.session['domain_list'], request.session['domain_exist_count'] = current_session(
+            request.session['domain_list'], request.session['domain_exist_count']
             )
 
         context = {
@@ -352,7 +361,7 @@ def create_csv(sort_list, request):
     """
     Создаём итоговый файл с названием result.csv и записываем данные
     """
-    with open(f'media\\file_excel\\result_{request.user.username}.csv', 'w+', encoding="cp1251", newline='') as csvfile:
+    with open(f'media/file_excel/result_{request.user.username}.csv', 'w+', encoding="cp1251", newline='') as csvfile:
         fieldnames = [
                 'id', 
                 'домен', 
@@ -365,7 +374,10 @@ def create_csv(sort_list, request):
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
         writer.writeheader()
         for row in sort_list:
-            writer.writerow(row)
+            try:
+                writer.writerow(row)
+            except:
+                pass
 
-        request.session['file'] = f'http://127.0.0.1:8000\\media\\file_excel\\result_{request.user.username}.csv'
+        request.session['file'] = f'http://45.12.236.143:85\\media\\file_excel\\result_{request.user.username}.csv'
         request.session['file_count'] = -5

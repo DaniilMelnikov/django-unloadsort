@@ -29,6 +29,7 @@ def uoload_file_view(request):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             list_file = request.FILES.getlist('file')
+            request.session['domain_list'] = []
             for file in list_file:
 
                 file_ = file._name.split(".")[::-1]
@@ -40,10 +41,18 @@ def uoload_file_view(request):
                         file_.pop(0)
                         break
                     file_.pop(0)
+                    
+                domain_name = ".".join(file_[::-1])
                 
+                try:
+                    domain = Domain.objects.get(user=request.user, name=domain_name)
+                except:
+                    if domain_name in request.session['domain_list']:
+                        continue
+                    request.session['domain_list'].append(domain_name)
+                    request.session['domain_exist_count'] = 0
+                    continue
                 
-
-                domain = Domain.objects.get(user=request.user, name=".".join(file_[::-1]))
                 data = Data.objects.filter(user=request.user, domain=domain, region=region)
                 if data:
                     data.delete()
@@ -59,12 +68,25 @@ def handle_uploaded_file(user, domain, region, file):
         if not id:
             continue
         el = el.decode('unicode-escape').encode('latin1').decode('utf-8').split(';')
-        int_position = int(el[2][1:-1])
+        
+        int_position = el[2]
+        if int_position[0] == '"':
+            int_position = int(int_position[1:-1])
+        else:
+            int_position = int(int_position)
+
         if int_position <= 30:
-            if el[-1][-1] == '\n':
-                int_frequency = int(el[-1][1:-2])
+            int_frequency = el[4]
+            n_true = int_frequency[-1] == '\n'
+            qav_true = int_frequency[0] == '"'
+
+            if n_true and qav_true:
+                int_frequency = int(int_frequency[1:-2])
+            elif not n_true and qav_true:
+                int_frequency = int(int_frequency[1:-1])
             else:
-                int_frequency = int(el[-1][1:-1])
+                int_frequency = int(int_frequency)
+                
             data = Data(
                         user=user, 
                         domain=domain, 

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render, redirect
 from download_file.forms import DomainForm, UploadFileForm
 from download_file.models import Domain, Data
@@ -378,6 +379,6 @@ def create_csv(sort_list, request):
                 writer.writerow(row)
             except:
                 pass
-
-        request.session['file'] = f'http://45.12.236.143:85\\media\\file_excel\\result_{request.user.username}.csv'
+        HOST = ':'.join(settings.ALLOWED_HOSTS)
+        request.session['file'] = f'http://{HOST}\\media\\file_excel\\result_{request.user.username}.csv'
         request.session['file_count'] = -5

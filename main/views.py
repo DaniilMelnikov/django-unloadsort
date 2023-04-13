@@ -158,6 +158,8 @@ def sort_unload_views(request):
         data_dict = select_data(request)
         data_dict = select_limit(data_dict, request)
         sort_list = select_result(data_dict, request)
+        if not sort_list:
+            return redirect('/start/?page=1')
 
         create_csv(sort_list, request)
         request.session['success_result'] = 'Успешно файл сформирован'
@@ -287,9 +289,10 @@ def select_result(data_dict, request):
                     continue
 
                 if current:
-                    request.session['error_xmlproxy'] = 'Неверная почта или ключ от xmlproxy'
+                    print(current)
+                    request.session['error_xmlproxy'] = current[0]
                     request.session['error_xmlproxy_count'] = 0
-                    return redirect('/start/?page=1')
+                    return 0
             id += 1
 
     return sort_list
@@ -329,7 +332,7 @@ def parser_xml(counter_id, counter_limit, domain_, xml_data, row, sort_list):
         soup = BeautifulSoup(xml_data, 'xml')
         error = soup.find_all('error')
         if error and error != None:
-            return counter_id, counter_limit, sort_list, True
+            return counter_id, counter_limit, sort_list, error[0].contents
         try:
             domains = soup.find_all('domain')
         except:

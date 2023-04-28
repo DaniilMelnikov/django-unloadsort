@@ -11,7 +11,7 @@ def register_view(request):
         return redirect('/start/?page=1')
     else:
         form = RegisterForm()
-        return render(request, 'auth\\registration.html', {'form': form})
+        return render(request, 'auth/registration.html', {'form': form})
     
 
 def success_register(request):
@@ -35,7 +35,7 @@ def success_register(request):
         return redirect('/login/')
     else:
         form = RegisterForm()
-        return render(request, 'auth\\registration.html', {'form': form})
+        return render(request, 'auth/registration.html', {'form': form})
 
 
 def login_view(request):
@@ -43,7 +43,7 @@ def login_view(request):
         return redirect('/start/?page=1')
     else:
         form = LoginForm()
-        return render(request, 'auth\login.html', {'form': form, 'error': ''})
+        return render(request, 'auth/login.html', {'form': form, 'error': ''})
     
 
 def success_login(request):
@@ -57,10 +57,10 @@ def success_login(request):
             login(request, user)
             return redirect('/start/?page=1')  
         else:
-            return render (request, 'auth\login.html', {'form': form, 'error': 'Неверный Email или Парольы'})
+            return render (request, 'auth/login.html', {'form': form, 'error': 'Неверный Email или Парольы'})
         
 
 def logout_view(request):
     logout(request)
     form = LoginForm()
-    return render (request, 'auth\login.html', {'form': form, 'error': ''})
+    return render (request, 'auth/login.html', {'form': form, 'error': ''})

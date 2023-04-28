@@ -17,9 +17,10 @@ from django.contrib import admin
 from django.urls import path, re_path
 from django.conf import settings
 from django.conf.urls.static import static
-from main.views import main, sort_unload_views, add_xml_view
+from main.views import main, sort_unload_views, add_xml_view, validate_views, write_results_views
 from download_file.views import save_domain, uoload_file_view
 from auth.views import register_view, success_register, login_view, success_login, logout_view
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,6 +34,8 @@ urlpatterns = [
     path('upload-data/', uoload_file_view),
     path('sort-unload/', sort_unload_views),
     path('add-xml-proxy/', add_xml_view),
+    path('validate/', validate_views),
+    path('write_results/', write_results_views),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

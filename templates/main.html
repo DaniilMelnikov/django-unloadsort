@@ -67,6 +67,7 @@
         {% endfor %}
     </div>
 
+    
     <div class="container">
         Внесите Почту и Ключ от доступа к XMLproxy.ru:
         <form action="/add-xml-proxy/" method="post">
@@ -76,6 +77,9 @@
         </form>
         {{ request.session.key_success }}
     </div>
+    {% if xmlproxy_email %}
+        <p>Email: {{ xmlproxy_email }}</p> <p>Key: {{ xmlproxy_key }}...</p>
+    {% endif %}
 
     <div class="container">
         Запустите обработку загруженных данных:
@@ -84,10 +88,9 @@
             <input type="text" name="domains" value="{% for domain in page.domains %}{{ domain.name }};{% endfor %}" style="display: none;">
             <input class="input-button" type="submit" value="Запустить сбор данных в файл">
         </form>
-        {{ request.session.error_xmlproxy }}
-        {{ request.session.success_result }}
+        <p>{{ request.session.error_xmlproxy }}</p>
+        <p>{{ request.session.success_result }}</p>
     </div>
-
     {% if request.session.file %}
         <div class="ccd"><a href="{{ request.session.file }}" class="ddott" download="result_admin.csv">Download</a></div>
     {% endif %}

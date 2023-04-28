@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.shortcuts import render, redirect
 from download_file.forms import DomainForm, UploadFileForm
 from download_file.models import Domain, Data
@@ -6,11 +5,18 @@ from auth.forms import KeyXmlProxyForms
 from django.core.paginator import Paginator
 from .models import RegionModel, KeyXmlProxy
 
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 import csv
+import json
+import logging
 import requests
 from random import shuffle
 from bs4 import BeautifulSoup
 
+logger = logging.getLogger(__name__)
 
 def main(request):
     if request.user.is_authenticated:
@@ -49,6 +55,14 @@ def main(request):
         form_upload = UploadFileForm()
         form_xml = KeyXmlProxyForms()
         try:
+            xmlproxy = KeyXmlProxy.objects.get(user=request.user)
+            xmlproxy_email = xmlproxy.email
+            xmlproxy_key = xmlproxy.key[0:7]
+        except:
+            xmlproxy = ''
+            xmlproxy_email = ''
+            xmlproxy_key = ''
+        try:
             request.session['key_success']
             request.session['success_xml_count']
 
@@ -81,6 +95,7 @@ def main(request):
             request.session['file'] = ''
             request.session['domain_list'] = ''
         
+        request.session['back_main'] = ''
 
         request.session['success'], request.session['success_count'] = current_session(
             request.session['success'], request.session['success_count']
@@ -106,6 +121,8 @@ def main(request):
             'form': form_domain,
             'form_upload': form_upload,
             'form_xml': form_xml,
+            'xmlproxy_email': xmlproxy_email,
+            'xmlproxy_key': xmlproxy_key,
             'save_domain': '',
             'domain_delete': domain_delete,
             'page': {
@@ -130,6 +147,7 @@ def current_session(session, count):
         count = 0
         session = ''
     return session, count
+
 
 
 def add_xml_view(request):
@@ -157,16 +175,13 @@ def sort_unload_views(request):
     if request.user.is_authenticated:
         data_dict = select_data(request)
         data_dict = select_limit(data_dict, request)
-        sort_list = select_result(data_dict, request)
-        if not sort_list:
-            return redirect('/start/?page=1')
 
-        create_csv(sort_list, request)
-        request.session['success_result'] = 'Успешно файл сформирован'
-        request.session['success_result_count'] = 0
-        return redirect('/start/?page=1')
-    else:
-        return redirect('/login/')
+        with open(f'media/json/json_user.json', 'w') as outfile:
+            json.dump(data_dict, outfile)
+        with open(f'media/json/json_sort_{request.user.username}.json', 'w') as outfile:
+            json.dump([], outfile)
+
+        return render(request, 'loader.html', context={})
 
 
 def select_data(request):
@@ -248,53 +263,96 @@ def select_limit(data_dict, request):
     
     return data_dict
 
+def func_chunk(lst, n):
+    for x in range(0, len(lst), n):
+        e_c = lst[x : n + x]
+        yield e_c
 
-def select_result(data_dict, request):
-    sort_list = []
-    counter_id = 0
-    for domain_name, dict in data_dict.items():
-        id = 0
-        for key, list in dict.items():
-            if key == "count":
-                continue
-            counter_limit = 0
-            key_xml = KeyXmlProxy.objects.get(user=request.user)
-            for el in list:
-                counter_cache = counter_limit
 
-                try:
-                    xml_data = request_xmlproxy(
-                        query=el[0],
-                        user=key_xml.email,
-                        key=key_xml.key,
-                        region=el[2]
-                    ).decode('unicode-escape').encode('latin1').decode('utf-8')
-                except:
-                    continue
-                    
-                counter_id, counter_limit, sort_list, current = parser_xml(
-                    counter_id=counter_id, 
-                    counter_limit=counter_limit,
-                    domain_=domain_name,
-                    xml_data=xml_data,
-                    row=el,
-                    sort_list=sort_list
-                )
+@api_view(["GET"])
+def validate_views(request):
+    if request.user.is_authenticated:
+        if request.method == 'GET':
+            domain = request.GET.get("domain_json")
+            region = request.GET.get("region")
+            id = int(request.GET.get("id"))
+            pocket = int(request.GET.get("pocket"))
+            split = int(request.GET.get("split"))
+            count = int(request.GET.get("count"))
 
-                if counter_limit == data_dict[domain_name]['count'][id]:
-                    break
+            with open(f'media/json/json_user.json') as json_file:
+                data = json.load(json_file)
+            data = data[domain][region]
 
-                if counter_limit > data_dict[domain_name]['count'][id]:
-                    counter_limit = counter_cache
-                    continue
+            if split - 1:
+                data = list(func_chunk(data, count))[pocket]
 
-                if current:
-                    print(current)
-                    request.session['error_xmlproxy'] = current[0]
-                    request.session['error_xmlproxy_count'] = 0
-                    return 0
-            id += 1
+            try:
+                with open(f'media/json/json_sort_{request.user.username}.json') as json_file:
+                    sort_list = json.load(json_file)
+                with open(f'media/json/json_sort_{request.user.username}.json', 'w') as outfile:
+                    json.dump([], outfile)
+            except:
+                sort_list = []
 
+            sort_list = select_result(sort_list, domain, data, id, request, count)
+            with open(f'media/json/json_sort_{request.user.username}.json', 'w') as outfile:
+                json.dump(sort_list, outfile)
+
+            return Response({"Ответ": data})
+    else:
+        Response({"Ответ": 0})
+
+
+@api_view(["GET"])
+def write_results_views(request):
+    if request.user.is_authenticated:
+        with open(f'media/json/json_sort_{request.user.username}.json') as json_file:
+            sort_list = json.load(json_file)
+        for id, dict in enumerate(sort_list):
+            dict["id"] = id + 1
+        create_csv(sort_list, request)
+        return Response({"Ответ": sort_list})
+    else:
+        return Response({"Ответ": 0})
+
+
+def select_result(sort_list, domain_name, data_dict, id, request, count):
+    list = data_dict
+    counter_limit = 0
+    key_xml = KeyXmlProxy.objects.get(user=request.user)
+    for el in list:
+        counter_cache = counter_limit
+
+        try:
+            xml_data = request_xmlproxy(
+                query=el[0],
+                user=key_xml.email,
+                key=key_xml.key,
+                region=el[2]
+            ).decode('unicode-escape').encode('latin1').decode('utf-8')
+        except:
+            continue
+        counter_limit, sort_list, current = parser_xml(
+            counter_limit=counter_limit,
+            domain_=domain_name,
+            xml_data=xml_data,
+            row=el,
+            sort_list=sort_list
+        )
+        if counter_limit == count:
+            break
+
+        if counter_limit > count:
+            counter_limit = counter_cache
+            continue
+
+        if current:
+            logger.error(f'Ошибка из xmlproxy {current}')   
+            request.session['error_xmlproxy'] = f'Ошибка из xmlproxy {current}'
+            request.session['error_xmlproxy_count'] = 0
+            return sort_list
+    logger.error(f'Удачное выполнение') 
     return sort_list
 
 
@@ -325,14 +383,14 @@ def request_xmlproxy(query, user, key, region):
             ).content
 
 
-def parser_xml(counter_id, counter_limit, domain_, xml_data, row, sort_list):
+def parser_xml(counter_limit, domain_, xml_data, row, sort_list):
         """
         Парсинг XML файла принятый из xmlproxy.ru. Ищем домен в первой 30.
         """
         soup = BeautifulSoup(xml_data, 'xml')
         error = soup.find_all('error')
         if error and error != None:
-            return counter_id, counter_limit, sort_list, error[0].contents
+            return counter_limit, sort_list, error[0].contents
         try:
             domains = soup.find_all('domain')
         except:
@@ -344,13 +402,10 @@ def parser_xml(counter_id, counter_limit, domain_, xml_data, row, sort_list):
                 break
         
         if current:
-            counter_id += 1
             visit = row[1]
-
             counter_limit += visit
             sort_list.append(
                 {
-                    'id': counter_id,
                     'домен': domain_,
                     'запросы': row[0],
                     'доп приписка': f'| {domain_}',
@@ -358,14 +413,14 @@ def parser_xml(counter_id, counter_limit, domain_, xml_data, row, sort_list):
                     'регион': row[2],
                 }
             )
-        return counter_id, counter_limit, sort_list, False
+        return counter_limit, sort_list, False
 
 
 def create_csv(sort_list, request):
     """
     Создаём итоговый файл с названием result.csv и записываем данные
     """
-    with open(f'media/file_excel/result_{request.user.username}.csv', 'w+', encoding="cp1251", newline='') as csvfile:
+    with open(f'media/file_excel/result_{request.user.username}.csv', 'w', encoding="cp1251", newline='') as csvfile:
         fieldnames = [
                 'id', 
                 'домен', 
@@ -382,6 +437,6 @@ def create_csv(sort_list, request):
                 writer.writerow(row)
             except:
                 pass
-        HOST = ':'.join(settings.ALLOWED_HOSTS)
-        request.session['file'] = f'http://{HOST}\\media\\file_excel\\result_{request.user.username}.csv'
+
+        request.session['file'] = f'\\media\\file_excel\\result_{request.user.username}.csv'
         request.session['file_count'] = -5
